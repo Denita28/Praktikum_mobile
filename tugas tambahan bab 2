@@ -1,0 +1,186 @@
+import 'dart:core';
+
+/// Enum untuk kategori produk
+enum KategoriProduk { DataManagement, NetworkAutomation }
+
+/// Class ProdukDigital
+class ProdukDigital {
+  String namaProduk;
+  double harga;
+  KategoriProduk kategori;
+
+  ProdukDigital({
+    required this.namaProduk,
+    required this.harga,
+    required this.kategori,
+  });
+
+  void terapkanDiskon() {
+    if (kategori == KategoriProduk.NetworkAutomation) {
+      double diskon = harga * 0.15;
+      double hargaSetelahDiskon = harga - diskon;
+      harga = hargaSetelahDiskon >= 200000 ? hargaSetelahDiskon : 200000;
+    }
+  }
+}
+
+/// Enum untuk peran karyawan
+enum PeranKaryawan { Developer, NetworkEngineer, Manager }
+
+/// Kelas abstrak Karyawan
+abstract class Karyawan {
+  String nama;
+  int umur;
+
+  Karyawan(this.nama, this.umur);
+
+  void bekerja();
+}
+
+/// Subclass KaryawanTetap
+class KaryawanTetap extends Karyawan {
+  KaryawanTetap(String nama, int umur) : super(nama, umur);
+
+  @override
+  void bekerja() {
+    print('$nama bekerja selama hari kerja reguler.');
+  }
+}
+
+/// Subclass KaryawanKontrak
+class KaryawanKontrak extends Karyawan {
+  KaryawanKontrak(String nama, int umur) : super(nama, umur);
+
+  @override
+  void bekerja() {
+    print('$nama bekerja pada proyek tertentu dalam periode spesifik.');
+  }
+}
+
+/// Mixin untuk Kinerja karyawan
+mixin Kinerja {
+  int produktivitas = 0;
+  DateTime? terakhirDiperbarui;
+
+  void updateProduktivitas(int nilai) {
+    DateTime sekarang = DateTime.now();
+    if (terakhirDiperbarui != null &&
+        sekarang.difference(terakhirDiperbarui!).inDays < 30) {
+      throw Exception('Produktivitas hanya dapat diperbarui setiap 30 hari.');
+    }
+    if (nilai < 0 || nilai > 100) {
+      throw Exception('Nilai produktivitas harus antara 0 dan 100.');
+    }
+    produktivitas = nilai;
+    terakhirDiperbarui = sekarang;
+  }
+}
+
+/// Subclass Manager dengan mixin Kinerja
+class Manager extends Karyawan with Kinerja {
+  Manager(String nama, int umur) : super(nama, umur);
+
+  void cekProduktivitas() {
+    if (produktivitas < 85) {
+      throw Exception('Produktivitas Manager harus minimal 85.');
+    }
+  }
+
+  @override
+  void bekerja() {
+    print('$nama memimpin tim dengan produktivitas $produktivitas%.');
+  }
+}
+
+/// Enum untuk fase proyek
+enum FaseProyek { Perencanaan, Pengembangan, Evaluasi }
+
+/// Class Proyek
+class Proyek {
+  FaseProyek fase = FaseProyek.Perencanaan;
+  List<String> anggotaTim = [];
+  DateTime tanggalMulai = DateTime.now();
+
+  void tambahAnggota(String anggota) {
+    anggotaTim.add(anggota);
+  }
+
+  void beralihFase() {
+    if (fase == FaseProyek.Perencanaan && anggotaTim.length >= 5) {
+      fase = FaseProyek.Pengembangan;
+    } else if (fase == FaseProyek.Pengembangan &&
+        DateTime.now().difference(tanggalMulai).inDays > 45) {
+      fase = FaseProyek.Evaluasi;
+    } else {
+      throw Exception('Syarat untuk beralih ke fase berikutnya tidak terpenuhi.');
+    }
+  }
+}
+
+/// Class Perusahaan
+class Perusahaan {
+  List<Karyawan> karyawanAktif = [];
+  List<Karyawan> karyawanNonAktif = [];
+  static const int batasMaksimal = 20;
+
+  void tambahKaryawan(Karyawan karyawan) {
+    if (karyawanAktif.length >= batasMaksimal) {
+      throw Exception('Jumlah karyawan aktif mencapai batas maksimal.');
+    }
+    karyawanAktif.add(karyawan);
+  }
+
+  void resignKaryawan(Karyawan karyawan) {
+    if (karyawanAktif.contains(karyawan)) {
+      karyawanAktif.remove(karyawan);
+      karyawanNonAktif.add(karyawan);
+    } else {
+      throw Exception('Karyawan tidak ditemukan dalam daftar aktif.');
+    }
+  }
+}
+
+/// Fungsi utama untuk pengujian
+void main() {
+  // Contoh ProdukDigital
+  var produk = ProdukDigital(
+    namaProduk: 'Otomasi Jaringan',
+    harga: 250000,
+    kategori: KategoriProduk.NetworkAutomation,
+  );
+  produk.terapkanDiskon();
+  print('Harga setelah diskon: ${produk.harga}');
+
+  // Contoh Karyawan
+  var karyawanTetap = KaryawanTetap('John Doe', 30);
+  var karyawanKontrak = KaryawanKontrak('Jane Smith', 25);
+
+  karyawanTetap.bekerja();
+  karyawanKontrak.bekerja();
+
+  // Contoh Manager dengan mixin Kinerja
+  var manager = Manager('Alice', 35);
+  manager.updateProduktivitas(90);
+  manager.cekProduktivitas();
+  print('Produktivitas Manager: ${manager.produktivitas}');
+  manager.bekerja();
+
+  // Contoh Proyek
+  var proyek = Proyek();
+  proyek.tambahAnggota('John');
+  proyek.tambahAnggota('Jane');
+  proyek.tambahAnggota('Alice');
+  proyek.tambahAnggota('Bob');
+  proyek.tambahAnggota('Charlie');
+  proyek.beralihFase();
+  print('Fase proyek: ${proyek.fase}');
+
+  // Contoh Perusahaan
+  var perusahaan = Perusahaan();
+  perusahaan.tambahKaryawan(karyawanTetap);
+  perusahaan.tambahKaryawan(karyawanKontrak);
+  perusahaan.tambahKaryawan(manager);
+  perusahaan.resignKaryawan(karyawanTetap);
+  print('Jumlah karyawan aktif: ${perusahaan.karyawanAktif.length}');
+  print('Jumlah karyawan non-aktif: ${perusahaan.karyawanNonAktif.length}');
+}
